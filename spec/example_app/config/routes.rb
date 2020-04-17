@@ -5,13 +5,15 @@ Rails.application.routes.draw do
     resources :log_entries
     resources :orders
     resources :products
-    resources :product_meta_tags
+    resources :product_meta_tags, except: [:index]
     resources :payments, only: [:index, :show]
     resources :series
 
     namespace :blog do
       resources :posts
     end
+
+    resources :stats, only: [:index]
 
     root to: "customers#index"
   end

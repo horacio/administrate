@@ -20,6 +20,12 @@ RSpec.describe Administrate::ApplicationHelper do
       expect(displayed).to eq("Customers")
     end
 
+    it "handles namespaced resources" do
+      displayed = display_resource_name("blog/posts")
+
+      expect(displayed).to eq("Blog Posts")
+    end
+
     context "when translations are defined" do
       it "uses the plural of the defined translation" do
         translations = {
@@ -40,17 +46,47 @@ RSpec.describe Administrate::ApplicationHelper do
         end
       end
     end
+
+    context "using custom dashboards" do
+      it "pluralizes the resource name" do
+        displayed = display_resource_name("stat")
+
+        expect(displayed).to eq("Stats")
+      end
+
+      it "handles plural arguments" do
+        displayed = display_resource_name(:stats)
+
+        expect(displayed).to eq("Stats")
+      end
+    end
   end
 
-  describe "#resource_index_route_key" do
-    it "handles index routes when resource is uncountable" do
-      route_key = resource_index_route_key(:series)
-      expect(route_key).to eq("series_index")
+  describe "#requireness" do
+    let(:page) do
+      Administrate::Page::Form.new(Blog::PostDashboard.new, Blog::Post.new)
     end
 
-    it "handles normal inflection" do
-      route_key = resource_index_route_key(:customer)
-      expect(route_key).to eq("customers")
+    it "returns 'required' if field is required" do
+      title = page.attributes.detect { |i| i.attribute == :title }
+      expect(requireness(title)).to eq("required")
+    end
+
+    it "returns 'optional' if field is not required" do
+      publish_at = page.attributes.detect { |i| i.attribute == :published_at }
+      expect(requireness(publish_at)).to eq("optional")
+    end
+  end
+
+  describe "#has_presence_validator?" do
+    it "returns true if field is required" do
+      required = has_presence_validator?(Blog::Post, :title)
+      expect(required).to eq(true)
+    end
+
+    it "returns false if field is not required" do
+      required = has_presence_validator?(Blog::Post, :publish_at)
+      expect(required).to eq(false)
     end
   end
 
